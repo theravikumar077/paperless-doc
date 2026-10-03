@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { useGoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import logoImg from '../assets/paperlessdoc-logo.png';
 
 export default function LoginPage() {
-  const { login, googleLogin } = useAuth();
+  const { login } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,41 +17,28 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const handleGoogleSignIn = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        setLoading(true);
-        const userInfoRes = await axios.get(
-          'https://www.googleapis.com/oauth2/v3/userinfo',
-          {
-            headers: {
-              Authorization: `Bearer ${tokenResponse.access_token}`,
-            },
-          }
-        );
-        const googleUser = userInfoRes.data;
-        const userData = await googleLogin(null, googleUser);
-        showToast(`Welcome back, ${userData.name}!`, 'success');
-        if (!userData.isOnboarded) {
-          navigate('/onboarding');
-        } else {
-          navigate('/dashboard');
-        }
-      } catch (err) {
-        console.error('Google sign-in error:', err);
-        showToast(
-          err.response?.data?.message || 'Unable to sign in with Google. Please try again.',
-          'error'
-        );
-      } finally {
-        setLoading(false);
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      let msg = 'Google sign-in failed. Please try again.';
+      if (errorParam === 'google_access_denied' || errorParam === 'google_auth_cancelled' || errorParam === 'access_denied') {
+        msg = 'Google sign-in was cancelled or denied. Please try again.';
+      } else if (errorParam === 'redirect_uri_mismatch') {
+        msg = 'Google OAuth redirect URI mismatch. Please check Google Cloud Console settings.';
+      } else if (errorParam === 'google_email_missing') {
+        msg = 'Google account email is missing or unavailable.';
+      } else if (errorParam === 'google_oauth_misconfigured') {
+        msg = 'Google OAuth configuration is incomplete on the server.';
       }
-    },
-    onError: (err) => {
-      console.error('Google Sign-In failed/cancelled:', err);
-      showToast('Google sign-in was cancelled.', 'error');
-    },
-  });
+      showToast(msg, 'error');
+    }
+  }, [searchParams, showToast]);
+
+  const handleGoogleSignIn = () => {
+    setLoading(true);
+    const backendUrl = import.meta.env.VITE_API_URL || '';
+    window.location.href = `${backendUrl}/api/auth/google`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

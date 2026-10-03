@@ -28,6 +28,7 @@ import PublicSharePage from './pages/PublicSharePage';
 
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
 import logoImg from './assets/paperlessdoc-logo.png';
 
@@ -102,6 +103,7 @@ export default function App() {
             />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/public/share/:token" element={<PublicSharePage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />

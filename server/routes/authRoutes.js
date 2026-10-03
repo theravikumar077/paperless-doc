@@ -4,6 +4,8 @@ const {
   register,
   login,
   googleAuth,
+  initiateGoogleAuth,
+  handleGoogleCallback,
   getMe,
   completeOnboarding,
   updateProfile,
@@ -16,6 +18,8 @@ const { protect } = require('../middleware/auth');
 
 router.post('/register', register);
 router.post('/login', login);
+router.get('/google', initiateGoogleAuth);
+router.get('/google/callback', handleGoogleCallback);
 router.post('/google', googleAuth);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);

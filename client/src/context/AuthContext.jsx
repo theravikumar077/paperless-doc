@@ -100,6 +100,27 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const handleTokenLogin = async (newToken) => {
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+    try {
+      const res = await api.get('/auth/me', {
+        headers: { Authorization: `Bearer ${newToken}` },
+      });
+      const userData = res.data.data;
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      if (userData.theme) setTheme(userData.theme);
+      return userData;
+    } catch (err) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+      throw err;
+    }
+  };
+
   const googleLogin = async (idToken, googleUser) => {
     const res = await api.post('/auth/google', { idToken, googleUser });
     const { token: newToken, data } = res.data;
@@ -173,6 +194,7 @@ export const AuthProvider = ({ children }) => {
         setTheme: changeTheme,
         login,
         googleLogin,
+        handleTokenLogin,
         signup,
         logout,
         completeOnboarding,
